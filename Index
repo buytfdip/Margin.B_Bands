@@ -13,13 +13,13 @@ LB_DN = params.add "Open Short Signals Required", 1
 MB_UP = params.add "Close Short Signals Required", 1
 # MAType: 0=SMA, 1=EMA, 2=WMA, 3=DEMA, 4=TEMA, 5=TRIMA, 6=KAMA, 7=MAMA, 8=T3 (Default=SMA)
 TIME = params.add "TEMA Time Period", 5
-TIME2 = params.add "RSI Time Period", 15
-SS_PCT = params.add "Short Order Stop Loss % (0 = Disable)", 5
-LS_PCT = params.add "Long Order Stop Loss % (0 = Disable)", 5
-LT_PCT = params.add "Long Order Profit Take % (0 = Disable)", 25
-ST_PCT = params.add "Short Order Profit Take % (0 = Disable)", 25
-PT_PCT = params.add "Balance % used for Profit Take", 75
-SL_PCT = params.add "Balance % used for Stop Loss", 75
+TIME2 = params.add "RSI Time Period", 25
+SS_PCT = params.add "Short Order Stop Loss % (0 = Disable)", 1.5
+LS_PCT = params.add "Long Order Stop Loss % (0 = Disable)", 1.5
+LT_PCT = params.add "Long Order Profit Take % (0 = Disable)", 7.5
+ST_PCT = params.add "Short Order Profit Take % (0 = Disable)", 7.5
+PT_PCT = params.add "Balance % used for Profit Take", 100
+SL_PCT = params.add "Balance % used for Stop Loss", 100
 
 class Margin
 
@@ -163,9 +163,9 @@ handle: (context, data) ->
     if (T3 <= UBand)
         storage.UB_DN += 1
 #MBand        
-    if (T3 >= MBand)
+    if (T3 <= MBand and T3 >= LBand)
         storage.MB_UP += 1
-    if (T3 <= MBand)
+    if (T3 >= MBand and T3 <= UBand)
         storage.MB_DN += 1  
 #LBand        
     if (T3 >= LBand)
@@ -215,46 +215,46 @@ handle: (context, data) ->
                 storage.LB_UP = 0
 #long stop loss
     if storage.long and !storage.longStop and LS_PCT > 0 and (i.price <= storage.longPrice / ( 1 + (LS_PCT/100)))
-                LstopOrder = mt.addOrder
-                instrument: i
-                side: 'sell'
-                type: 'limit'
-                amount: pos.amount * LSL_SPLT
-                price: i.price
-    if LstopOrder
-        warn "Finished Long Stop Loss Order!"
-        plotMark
-            "Stop Loss": i.price
-        pos = mt.getPosition i
-        storage.long = true
-        storage.longStop = true
-        storage.UB_DN = 0
-        storage.UB_UP = 0
-        storage.MB_DN = 0
-        storage.MB_UP = 0
-        storage.LB_DN = 0
-        storage.LB_UP = 0                
+        LstopOrder = mt.addOrder
+            instrument: i
+            side: 'sell'
+            type: 'limit'
+            amount: (pos.amount * LSL_SPLT)
+            price: i.price
+        if LstopOrder
+            warn "Finished Long Stop Loss Order!"
+            plotMark
+                "Stop Loss": i.price
+            pos = mt.getPosition i
+            storage.long = true
+            storage.longStop = true
+            storage.UB_DN = 0
+            storage.UB_UP = 0
+            storage.MB_DN = 0
+            storage.MB_UP = 0
+            storage.LB_DN = 0
+            storage.LB_UP = 0                
 #long profit take
     if storage.long and !storage.longTake and LT_PCT > 0 and (i.price >= storage.longPrice * ( 1 + (LT_PCT/100)))
-                LtakeOrder = mt.addOrder
-                instrument: i
-                side: 'sell'
-                type: 'limit'
-                amount: pos.amount * LPT_SPLT
-                price: i.price
-    if LtakeOrder
-        warn "Finished Long Profit Take Order!"
-        plotMark
-            "Take Profit": i.price
-        pos = mt.getPosition i
-        storage.longTake = true
-        storage.long = true
-        storage.UB_DN = 0
-        storage.UB_UP = 0
-        storage.MB_DN = 0
-        storage.MB_UP = 0
-        storage.LB_DN = 0
-        storage.LB_UP = 0  
+        LtakeOrder = mt.addOrder
+            instrument: i
+            side: 'sell'
+            type: 'limit'
+            amount: (pos.amount * LPT_SPLT)
+            price: i.price
+        if LtakeOrder
+            warn "Finished Long Profit Take Order!"
+            plotMark
+                "Take Profit": i.price
+            pos = mt.getPosition i
+            storage.longTake = true
+            storage.long = true
+            storage.UB_DN = 0
+            storage.UB_UP = 0
+            storage.MB_DN = 0
+            storage.MB_UP = 0
+            storage.LB_DN = 0
+            storage.LB_UP = 0  
 #pre short/close long
     if (storage.MB_DN > MB_DN)
         if pos and storage.long 
@@ -297,46 +297,46 @@ handle: (context, data) ->
                 storage.LB_UP = 0              
 #short stop loss
     if storage.short and !storage.shortStop and SS_PCT > 0 and (i.price >= storage.shortPrice * ( 1 + (SS_PCT/100)))
-                SstopOrder = mt.addOrder
-                instrument: i
-                side: 'buy'
-                type: 'limit'
-                amount: pos.amount * SSL_SPLT
-                price: i.price
-    if SstopOrder
-        warn "Finished Short Stop Order!"
-        plotMark
-            "Stop Loss": i.price
-        pos = mt.getPosition i
-        storage.shortStop = true
-        storage.short = true
-        storage.UB_DN = 0
-        storage.UB_UP = 0
-        storage.MB_DN = 0
-        storage.MB_UP = 0
-        storage.LB_DN = 0
-        storage.LB_UP = 0                
+        SstopOrder = mt.addOrder
+            instrument: i
+            side: 'buy'
+            type: 'limit'
+            amount: (pos.amount * SSL_SPLT)
+            price: i.price
+        if SstopOrder
+            warn "Finished Short Stop Order!"
+            plotMark
+                "Stop Loss": i.price
+            pos = mt.getPosition i
+            storage.shortStop = true
+            storage.short = true
+            storage.UB_DN = 0
+            storage.UB_UP = 0
+            storage.MB_DN = 0
+            storage.MB_UP = 0
+            storage.LB_DN = 0
+            storage.LB_UP = 0                
 #short profit take
     if storage.short and !storage.shortTake and ST_PCT > 0 and (i.price <= storage.shortPrice / ( 1 + (ST_PCT/100)))
-                StakeOrder = mt.addOrder
-                instrument: i
-                side: 'buy'
-                type: 'limit'
-                amount: pos.amount * SPT_SPLT
-                price: i.price
-    if StakeOrder
-        warn "Finished Short Profit Take Order!"
-        plotMark
-            "Take Profit": i.price
-        pos = mt.getPosition i
-        storage.shortTake = true
-        storage.short = true  
-        storage.UB_DN = 0
-        storage.UB_UP = 0
-        storage.MB_DN = 0
-        storage.MB_UP = 0
-        storage.LB_DN = 0
-        storage.LB_UP = 0              
+        StakeOrder = mt.addOrder
+            instrument: i
+            side: 'buy'
+            type: 'limit'
+            amount: (pos.amount * SPT_SPLT)
+            price: i.price
+        if StakeOrder
+            warn "Finished Short Profit Take Order!"
+            plotMark
+                "Take Profit": i.price
+            pos = mt.getPosition i
+            storage.shortTake = true
+            storage.short = true  
+            storage.UB_DN = 0
+            storage.UB_UP = 0
+            storage.MB_DN = 0
+            storage.MB_UP = 0
+            storage.LB_DN = 0
+            storage.LB_UP = 0              
 
 #print log
     warn "--------------- BuyTFdip's MARGIN BOT ---------------"
