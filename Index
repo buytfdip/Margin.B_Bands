@@ -126,8 +126,11 @@ handle: (context, data) ->
     LB = results.outRealLowerBand
 
     UBand = _.last(UB)
+    UB_2 = UBand[UBand.length - 2]
     MBand = _.last(MB)
+    MB_2 = MBand[MBand.length - 2]
     LBand = _.last(LB)
+    LB_2 = LBand[LBand.length - 2]
 #TEMA
     T3 = talib.TEMA
         inReal: i.close
@@ -136,6 +139,7 @@ handle: (context, data) ->
         optInTimePeriod: TIME
 
     T3 = _.last(T3)
+    T3_2 = T3[T3.length - 2]
 #RSI
     rsi = talib.RSI
         inReal: i.close
@@ -207,6 +211,10 @@ handle: (context, data) ->
                 storage.longClose = false
                 storage.long = true
                 storage.short = false
+                storage.longTake = false
+                storage.shortTake = false
+                storage.longStop = false
+                storage.shortStop = false                
                 storage.UB_DN = 0
                 storage.UB_UP = 0
                 storage.MB_DN = 0
@@ -289,6 +297,10 @@ handle: (context, data) ->
                 storage.short = true
                 storage.shortClose = false
                 storage.longClose = false
+                storage.longTake = false
+                storage.shortTake = false
+                storage.longStop = false
+                storage.shortStop = false                
                 storage.UB_DN = 0
                 storage.UB_UP = 0
                 storage.MB_DN = 0
